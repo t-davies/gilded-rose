@@ -1,3 +1,6 @@
+import * as strategies from './strategies';
+import { IUpdateStrategy } from './strategies/default';
+
 export class Item {
     name: string;
     sellIn: number;
@@ -12,58 +15,26 @@ export class Item {
 
 export class GildedRose {
     items: Array<Item>;
+    strategies: Array<IUpdateStrategy>;
 
     constructor(items = [] as Array<Item>) {
+        const { DefaultUpdateStrategy, ...others } = strategies;
+
         this.items = items;
+        this.strategies = [...Object.values(others), DefaultUpdateStrategy];
     }
 
     updateQuality() {
-        for (let i = 0; i < this.items.length; i++) {
-            if (this.items[i].name != 'Aged Brie' && this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                if (this.items[i].quality > 0) {
-                    if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                        this.items[i].quality = this.items[i].quality - 1
-                    }
-                }
-            } else {
-                if (this.items[i].quality < 50) {
-                    this.items[i].quality = this.items[i].quality + 1
-                    if (this.items[i].name == 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].sellIn < 11) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                        if (this.items[i].sellIn < 6) {
-                            if (this.items[i].quality < 50) {
-                                this.items[i].quality = this.items[i].quality + 1
-                            }
-                        }
-                    }
-                }
-            }
-            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                this.items[i].sellIn = this.items[i].sellIn - 1;
-            }
-            if (this.items[i].sellIn < 0) {
-                if (this.items[i].name != 'Aged Brie') {
-                    if (this.items[i].name != 'Backstage passes to a TAFKAL80ETC concert') {
-                        if (this.items[i].quality > 0) {
-                            if (this.items[i].name != 'Sulfuras, Hand of Ragnaros') {
-                                this.items[i].quality = this.items[i].quality - 1
-                            }
-                        }
-                    } else {
-                        this.items[i].quality = this.items[i].quality - this.items[i].quality
-                    }
-                } else {
-                    if (this.items[i].quality < 50) {
-                        this.items[i].quality = this.items[i].quality + 1
-                    }
-                }
-            }
-        }
+        return this.items.map(item => {
+            const strategy = this.strategies.find(
+                strategy => strategy.isSuitableFor(item)
+            );
 
-        return this.items;
+            if (!strategy) {
+                throw new Error(`Failed to match strategy for ${item.name}`);
+            }
+
+            return strategy.update(item);
+        });
     }
 }

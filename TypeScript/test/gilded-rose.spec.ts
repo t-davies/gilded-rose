@@ -17,6 +17,15 @@ describe('Gilded Rose', () => {
         const createBackstagePasses = (options) => createItem({ name: 'Backstage passes to a TAFKAL80ETC concert', ...options });
         const createSulfuras = (options) => createItem({ name: 'Sulfuras, Hand of Ragnaros', ...options });
 
+        it('throws if no suitable strategies are found for an item', () => {
+            const gildedRose = new GildedRose([
+                createItem({ sellIn: 5, quality: 2 }),
+            ]);
+
+            gildedRose.strategies = [];
+            expect(() => gildedRose.updateQuality()).to.throw(/Failed to match strategy/);
+        });
+
         it('does not allow quality to reduce below 0', () => {
             const gildedRose = new GildedRose([
                 createItem({ sellIn: 10, quality: 0 }),

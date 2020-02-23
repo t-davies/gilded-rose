@@ -16,6 +16,7 @@ describe('Gilded Rose', () => {
         const createAgedBrie = (options) => createItem({ name: 'Aged Brie', ...options });
         const createBackstagePasses = (options) => createItem({ name: 'Backstage passes to a TAFKAL80ETC concert', ...options });
         const createSulfuras = (options) => createItem({ name: 'Sulfuras, Hand of Ragnaros', ...options });
+        const createConjured = (options) => createItem({ name: 'Conjured Mana Cake', ...options });
 
         it('throws if no suitable strategies are found for an item', () => {
             const gildedRose = new GildedRose([
@@ -158,6 +159,28 @@ describe('Gilded Rose', () => {
 
                 const [updated] = gildedRose.updateQuality();
                 expect(updated.sellIn).to.equal(null);
+            });
+        });
+
+        describe('conjured items', () => {
+            it('reduces quality by 2 as sell-in decreases', () => {
+                const gildedRose = new GildedRose([
+                    createConjured({ sellIn: 20, quality: 10 }),
+                ]);
+
+                const [updated] = gildedRose.updateQuality();
+                expect(updated.sellIn).to.equal(19);
+                expect(updated.quality).to.equal(8);
+            });
+
+            it('reduces quality twice as quickly once sell by date reached', () => {
+                const gildedRose = new GildedRose([
+                    createConjured({ sellIn: 0, quality: 10 }),
+                ]);
+
+                const [updated] = gildedRose.updateQuality();
+                expect(updated.sellIn).to.equal(-1);
+                expect(updated.quality).to.equal(6);
             });
         });
     });

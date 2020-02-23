@@ -15,7 +15,19 @@ export interface IUpdateStrategy {
   isSuitableFor(item: Item): boolean;
 }
 
+/**
+ * The default behaviour of items is to decrease both sell-in and quality,
+ * once an item has expired it decreases in quality twice as quickly.
+ *
+ * The value of quality can not go below 0.
+ */
 export class DefaultUpdateStrategy implements IUpdateStrategy {
+  multiplier: number;
+
+  constructor({ multiplier = 1 } = {}) {
+    this.multiplier = multiplier;
+  }
+
   isSuitableFor(item: Item) {
     return true;
   }
@@ -27,7 +39,7 @@ export class DefaultUpdateStrategy implements IUpdateStrategy {
     return {
       ...item,
       sellIn: updatedSellIn,
-      quality: Math.max(0, item.quality - qualityDecrement),
+      quality: Math.max(0, item.quality - (qualityDecrement * this.multiplier)),
     }
   }
 }
